@@ -237,6 +237,7 @@ const ASSETS = {"bone-fire": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANkA
 </script>
 <script>
 "use strict";
+const GAME_VERSION='1.0';
 /* ============================================================
    AHLY'S MAZE — first-person raycasting bone hunt
    ============================================================ */
@@ -875,11 +876,11 @@ function hexToCss(h,a){const c=hex(h);return 'rgba('+c[0]+','+c[1]+','+c[2]+','+
 function drawSprites(theme,horizon){
   const W=G.W,H=G.H;
   const list=[];
-  for(const b of G.bones) list.push({x:b.x,y:b.y,img:BONE_TYPES[b.type].img,scale:BONE_TYPES[b.type].w*0.2,
+  for(const b of G.bones) list.push({x:b.x,y:b.y,img:BONE_TYPES[b.type].img,scale:BONE_TYPES[b.type].w*0.16,
     bobY:Math.sin(b.bob)*0.08, kind:'bone', type:b.type});
-  for(const e of G.enemies) list.push({x:e.x,y:e.y,img:e.img,scale:0.6,kind:'dog'});
-  for(const t of G.thieves) list.push({x:t.x,y:t.y,img:t.img,scale:0.48,kind:'dog'});
-  if(G.noah) list.push({x:G.noah.x,y:G.noah.y,img:'noah',scale:0.6,kind:'noah'});
+  for(const e of G.enemies) list.push({x:e.x,y:e.y,img:e.img,scale:0.5,kind:'dog'});
+  for(const t of G.thieves) list.push({x:t.x,y:t.y,img:t.img,scale:0.4,kind:'dog'});
+  if(G.noah) list.push({x:G.noah.x,y:G.noah.y,img:'noah',scale:0.52,kind:'noah'});
 
   // transform & sort by distance desc
   for(const s of list){
@@ -980,7 +981,10 @@ function frame(ts){
 /* ============================================================
    SCREENS / FLOW
    ============================================================ */
-function show(id){['menu','help','intro','pause','win'].forEach(s=>$('#'+s).classList.toggle('hide',s!==id));}
+function releaseMouse(){ try{ if(document.pointerLockElement) document.exitPointerLock(); }catch(e){} }
+function show(id){['menu','help','intro','pause','win'].forEach(s=>$('#'+s).classList.toggle('hide',s!==id));
+  if(id!=='none') releaseMouse();   // bring the cursor back on any screen (fixes lost pointer between levels)
+}
 function showIntro(){
   G.state=State.INTRO; show('intro');
   $('#introNum').textContent=G.level;
@@ -1002,8 +1006,14 @@ function resumeGame(){ if(G.state===State.PAUSE){G.state=State.PLAY;show('none')
 /* ---------- input wiring ---------- */
 addEventListener('keydown',e=>{
   const k=e.key.toLowerCase(); G.keys[k]=true;
-  if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k)) e.preventDefault();
+  if(['arrowup','arrowdown','arrowleft','arrowright',' ','enter'].includes(k)) e.preventDefault();
   if((k===' '||k==='spacebar') && G.state===State.PLAY && G.jumpH<=0 && G.jumpV<=0){ G.jumpV=4.4; }
+  if(k==='enter'){
+    if(G.state===State.INTRO) $('#goBtn').click();        // Enter = Go! / next level
+    else if(G.state===State.MENU) $('#startBtn').click();
+    else if(G.state===State.WIN) $('#playAgain').click();
+    else if(G.state===State.PAUSE) $('#resumeBtn').click();
+  }
   if(k==='escape'){ if(G.state===State.PLAY)pauseGame(); else if(G.state===State.PAUSE)resumeGame(); }
   if(k==='m'){ mini.style.display = mini.style.display==='none'?'block':'none'; }
 });
@@ -1094,7 +1104,8 @@ function buildMenu(){
     `<span class="brand">AHLCHEMY</span>`+
     `<span class="role">Game Designer: Liam Ahl</span>`+
     `<span class="role">Game Developer: Thomas Ahl</span>`+
-    `<span class="rights">© Ahlchemy Author Company · All rights reserved.</span>`;
+    `<span class="rights">© Ahlchemy Author Company · All rights reserved.</span>`+
+    `<span class="rights">Version ${GAME_VERSION}</span>`;
   $('#credits').innerHTML = creditsHTML;
   $('#creditsWin').innerHTML = creditsHTML;
 
